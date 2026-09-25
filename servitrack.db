@@ -1,42 +1,44 @@
-DB_FILE = "servitrack.db"
-
-def get_connection():
-    """Return a SQLite connection with row access by column name."""
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
+import sqlite3
 
 def init_db():
-    """Create the database tables and default users if required."""
-    with get_connection() as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL,
-                role TEXT NOT NULL,
-                full_name TEXT NOT NULL
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS products (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL,
-                category TEXT NOT NULL,
-                price REAL NOT NULL,
-                stock INTEGER NOT NULL
-            )
-        """)
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS sales (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                receipt_id TEXT NOT NULL,
-                product_name TEXT NOT NULL,
-                quantity INTEGER NOT NULL,
-                total_price REAL NOT NULL,
-                payment_method TEXT NOT NULL,
-                cashier TEXT NOT NULL,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        conn.commit()
+    conn = sqlite3.connect("inventory.db")
+    cursor = conn.cursor()
+    
+    # Products Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS products (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL,
+            price REAL NOT NULL,
+            stock INTEGER NOT NULL
+        )
+    ''')
+    
+    # Sales Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sales (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            product_name TEXT,
+            quantity INTEGER,
+            total_price REAL,
+            payment_method TEXT,
+            cashier TEXT
+        )
+    ''')
+    
+    # Cashier Roster Table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS cashiers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+if __name__ == "__main__":
+    init_db()
+    print("Database updated with Cashiers table!")
